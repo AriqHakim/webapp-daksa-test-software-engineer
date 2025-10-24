@@ -3,10 +3,15 @@ package com.daksa.career;
 import com.vaadin.cdi.annotation.RouteScoped;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
@@ -59,11 +64,53 @@ public class HomePage extends Div {
         label.addClassName("title");
         FormLayout registrationForm = new FormLayout(label);
         // TODO: Code here
+
+        // id field
+        var idField = new TextField();
+        idField.addClassName("register-text-field");
+        idField.setRequired(true);
+        idField.setMaxLength(16);
+
+        // name field
+        var nameField = new TextField();
+        nameField.addClassName("register-text-field");
+        nameField.setRequired(true);
+        nameField.setMaxLength(64);
+
+        // address field
+        var addressField = new TextArea();
+        addressField.addClassName("register-text-field");
+        addressField.setRequired(false);
+        addressField.setMaxLength(255);
+
+        // birth date field
+        var birthDateField = new DatePicker();
+        birthDateField.addClassName("register-date-field");
+        birthDateField.setRequired(true);
+
+        // add radio button for Allow Negative Balance
+        RadioButtonGroup<Boolean> allowNegativeBalanceField = new RadioButtonGroup<>();
+        allowNegativeBalanceField.addClassName("register-radio-button");
+        allowNegativeBalanceField.setItems(true, false);
+        allowNegativeBalanceField.setItemLabelGenerator(item -> item ? "Yes" : "No");
+        allowNegativeBalanceField.setRequired(true);
+
+        // submit button
         Button submitButton = new Button();
         submitButton.setText("Submit");
         submitButton.addClickListener(this::register);
+
+        // add fields as FormItems (label is provided here)
+        registrationForm.addFormItem(idField, "ID");
+        registrationForm.addFormItem(nameField, "Name");
+        registrationForm.addFormItem(addressField, "Address");
+        registrationForm.addFormItem(birthDateField, "Birth Date");
+        registrationForm.addFormItem(allowNegativeBalanceField, "Allow Negative Balance");
         registrationForm.addFormItem(submitButton, "");
-        registrationForm.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
+        registrationForm.setResponsiveSteps(
+                new FormLayout.ResponsiveStep("0", 1, FormLayout.ResponsiveStep.LabelsPosition.ASIDE));
+
+        /// add form to container
         regFormContainer.add(registrationForm);
         return regFormContainer;
     }
@@ -74,6 +121,7 @@ public class HomePage extends Div {
     private void register(ClickEvent<Button> buttonClickEvent) {
         LOG.info("registerButtonClicked");
         // TODO: Code here
+
     }
 
     /**
@@ -82,7 +130,10 @@ public class HomePage extends Div {
      * Uploaded file were exists in the project folder /batch-file
      */
     private Div createUploadPanel() {
-        Div uploadPanel = new Div();
+        Label label = new Label("Upload Batch");
+        label.addClassName("title");
+
+        Div uploadPanel = new Div(label);
         uploadPanel.addClassName("upload-panel-container");
         MemoryBuffer uploadBatchMemoryBuffer = new MemoryBuffer();
         Upload uploadBatchButton = new Upload(uploadBatchMemoryBuffer);
@@ -103,9 +154,23 @@ public class HomePage extends Div {
      * This component create Account Table
      */
     private Div createAccountTable() {
-        Div accountTablePanel = new Div();
+        Label label = new Label("Account Table");
+        label.addClassName("title");
+
+        Div accountTablePanel = new Div(label);
         accountTablePanel.addClassName("acc-table-container");
         // TODO : code here
+        Grid<Account> accountGrid = new Grid<>(Account.class, false);
+        accountGrid.addColumn(Account::getId).setHeader("ID").setAutoWidth(true);
+        accountGrid.addColumn(Account::getName).setHeader("Name").setAutoWidth(true);
+        accountGrid.addColumn(Account::getAddress).setHeader("Address").setAutoWidth(true);
+        accountGrid.addColumn(Account::getBirthDate).setHeader("Birth Date").setAutoWidth(true);
+        accountGrid.addColumn(account -> account.isAllowNegativeBalance() ? "Yes" : "No")
+                .setHeader("Allow Negative Balance").setAutoWidth(true);
+
+        accountTablePanel.add(accountGrid);
+
+        // TODO : set items from repository
 
         return accountTablePanel;
     }

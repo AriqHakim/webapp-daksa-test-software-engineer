@@ -12,15 +12,28 @@
 }
 
 .container > * {
+  max-width: 1080px;
   width: 100%;
   margin-bottom: 8px;
   border: 1px solid silver;
-  padding: 10px;
+  padding: 20px;
 }
 
 .title {
   text-align: center;
   font-weight: bold;
+}
+
+.upload-panel-container {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.acc-table-container {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 
 /*# sourceMappingURL=main.css.map */
