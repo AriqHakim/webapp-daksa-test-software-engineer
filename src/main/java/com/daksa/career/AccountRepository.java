@@ -24,6 +24,7 @@ public class AccountRepository {
      */
     public void save(Account account) {
         // TODO: Code Here
+        ACCOUNTS.add(account);
     }
 
     /**
@@ -33,7 +34,10 @@ public class AccountRepository {
      */
     public List<Account> getAccounts() {
         // TODO: Code Here
-        return null;
+        return ACCOUNTS;
     }
 
+    public boolean isIdExisting(String id) {
+        return ACCOUNTS.stream().anyMatch(acc -> acc.getId().equals(id));
+    }
 }

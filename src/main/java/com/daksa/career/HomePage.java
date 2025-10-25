@@ -15,6 +15,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.validator.StringLengthValidator;
 import com.vaadin.flow.router.Route;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,6 @@ public class HomePage extends Div {
         Label label = new Label("MOCKVA Registration");
         label.addClassName("title");
         FormLayout registrationForm = new FormLayout(label);
-        // TODO: Code here
 
         // id field
         var idField = new TextField();
@@ -71,11 +71,27 @@ public class HomePage extends Div {
         idField.setRequired(true);
         idField.setMaxLength(16);
 
+        // bind id field to binder
+        accountBinder.forField(idField)
+                .asRequired("Please enter your ID")
+                .withValidator(new StringLengthValidator(
+                        "Title must be between 1 and 16 characters", 1, 16))
+                .withValidator(accId -> !accountRepository.isIdExisting(accId),
+                        "ID already exists")
+                .bind(Account::getId, Account::setId);
+
         // name field
         var nameField = new TextField();
         nameField.addClassName("register-text-field");
         nameField.setRequired(true);
         nameField.setMaxLength(64);
+
+        // bind id field to name
+        accountBinder.forField(nameField)
+                .asRequired("Please enter your name")
+                .withValidator(new StringLengthValidator(
+                        "Title must be between 1 and 64 characters", 1, 64))
+                .bind(Account::getName, Account::setName);
 
         // address field
         var addressField = new TextArea();
@@ -83,10 +99,21 @@ public class HomePage extends Div {
         addressField.setRequired(false);
         addressField.setMaxLength(255);
 
+        // bind address field to address
+        accountBinder.forField(addressField)
+                .withValidator(new StringLengthValidator(
+                        "Address must be between 0 and 255 characters", 0, 255))
+                .bind(Account::getAddress, Account::setAddress);
+
         // birth date field
         var birthDateField = new DatePicker();
         birthDateField.addClassName("register-date-field");
         birthDateField.setRequired(true);
+
+        // bind birth date field to birth date
+        accountBinder.forField(birthDateField)
+                .asRequired("Please enter your date of birth")
+                .bind(Account::getBirthDate, Account::setBirthDate);
 
         // add radio button for Allow Negative Balance
         RadioButtonGroup<Boolean> allowNegativeBalanceField = new RadioButtonGroup<>();
@@ -95,12 +122,17 @@ public class HomePage extends Div {
         allowNegativeBalanceField.setItemLabelGenerator(item -> item ? "Yes" : "No");
         allowNegativeBalanceField.setRequired(true);
 
+        // bind radio button for Allow Negative Balance
+        accountBinder.forField(allowNegativeBalanceField)
+                .asRequired("Please choose allow negative balance option")
+                .bind(Account::isAllowNegativeBalance, Account::setAllowNegativeBalance);
+
         // submit button
         Button submitButton = new Button();
         submitButton.setText("Submit");
         submitButton.addClickListener(this::register);
 
-        // add fields as FormItems (label is provided here)
+        // add fields as FormItems
         registrationForm.addFormItem(idField, "ID");
         registrationForm.addFormItem(nameField, "Name");
         registrationForm.addFormItem(addressField, "Address");
@@ -120,8 +152,13 @@ public class HomePage extends Div {
      */
     private void register(ClickEvent<Button> buttonClickEvent) {
         LOG.info("registerButtonClicked");
-        // TODO: Code here
-
+        if (accountBinder.validate().isOk()) {
+            Account account = new Account();
+            accountBinder.writeBeanIfValid(account);
+            accountService.register(account);
+            accountGrid.refreshAll();
+            accountBinder.readBean(new Account());
+        }
     }
 
     /**
@@ -137,6 +174,7 @@ public class HomePage extends Div {
         uploadPanel.addClassName("upload-panel-container");
         MemoryBuffer uploadBatchMemoryBuffer = new MemoryBuffer();
         Upload uploadBatchButton = new Upload(uploadBatchMemoryBuffer);
+        uploadBatchButton.setAcceptedFileTypes(".txt");
         uploadBatchButton.addSucceededListener(event -> {
             try {
                 LOG.info("uploadRegBatch");
@@ -159,18 +197,9 @@ public class HomePage extends Div {
 
         Div accountTablePanel = new Div(label);
         accountTablePanel.addClassName("acc-table-container");
-        // TODO : code here
-        Grid<Account> accountGrid = new Grid<>(Account.class, false);
-        accountGrid.addColumn(Account::getId).setHeader("ID").setAutoWidth(true);
-        accountGrid.addColumn(Account::getName).setHeader("Name").setAutoWidth(true);
-        accountGrid.addColumn(Account::getAddress).setHeader("Address").setAutoWidth(true);
-        accountGrid.addColumn(Account::getBirthDate).setHeader("Birth Date").setAutoWidth(true);
-        accountGrid.addColumn(account -> account.isAllowNegativeBalance() ? "Yes" : "No")
-                .setHeader("Allow Negative Balance").setAutoWidth(true);
+        accountGrid = new AccountGrid(accountRepository);
 
         accountTablePanel.add(accountGrid);
-
-        // TODO : set items from repository
 
         return accountTablePanel;
     }
