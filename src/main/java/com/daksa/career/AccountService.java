@@ -33,7 +33,6 @@ public class AccountService {
      */
     public void register(Account account) {
         LOG.info("register");
-        // TODO : code here
         accountRepository.save(account);
     }
 
@@ -45,11 +44,20 @@ public class AccountService {
      */
     public void parseBatch(InputStream batchRegisStream) throws IOException {
         LOG.info("parseBatch");
-        // TODO : code here
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(batchRegisStream))) {
             while (reader.ready()) {
                 String line = reader.readLine();
-                accountRepository.save(stringParser.parseDataToAccount(line));
+
+                Account account = stringParser.parseDataToAccount(line);
+                if (accountRepository.isIdExisting(account.getId())) {
+                    continue;
+                }
+
+                try {
+                    accountRepository.save(stringParser.parseDataToAccount(line));
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
+                }
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());

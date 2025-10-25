@@ -9,6 +9,8 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
@@ -158,6 +160,10 @@ public class HomePage extends Div {
             accountService.register(account);
             accountGrid.refreshAll();
             accountBinder.readBean(new Account());
+
+            Notification notification = Notification.show("Register account success!", 5000,
+                    Notification.Position.TOP_END);
+            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         }
     }
 
@@ -174,12 +180,29 @@ public class HomePage extends Div {
         uploadPanel.addClassName("upload-panel-container");
         MemoryBuffer uploadBatchMemoryBuffer = new MemoryBuffer();
         Upload uploadBatchButton = new Upload(uploadBatchMemoryBuffer);
+        // uploadBatchButton.setDropAllowed(false);
+        uploadBatchButton.setAutoUpload(false);
         uploadBatchButton.setAcceptedFileTypes(".txt");
+
+        // rejectedf listener
+        uploadBatchButton.addFileRejectedListener(event -> {
+            String errorMessage = event.getErrorMessage();
+
+            Notification notification = Notification.show(errorMessage, 5000,
+                    Notification.Position.TOP_END);
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        });
+
+        // successed listener
         uploadBatchButton.addSucceededListener(event -> {
             try {
                 LOG.info("uploadRegBatch");
-                // TODO: code here
                 accountService.parseBatch(uploadBatchMemoryBuffer.getInputStream());
+                accountGrid.refreshAll();
+
+                Notification notification = Notification.show("Upload in batch success!", 5000,
+                        Notification.Position.TOP_END);
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             } catch (Exception e) {
                 LOG.error(e.getMessage(), e);
             }
