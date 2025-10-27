@@ -36,6 +36,10 @@ public class AccountService {
         accountRepository.save(account);
     }
 
+    public boolean isIdExisting(String id) {
+        return accountRepository.isIdExisting(id);
+    }
+
     /**
      * This method is used for parsing file batch registration
      *
@@ -45,18 +49,35 @@ public class AccountService {
     public void parseBatch(InputStream batchRegisStream) throws IOException {
         LOG.info("parseBatch");
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(batchRegisStream))) {
-            while (reader.ready()) {
-                String line = reader.readLine();
 
-                Account account = stringParser.parseDataToAccount(line);
+            String line;
+            while ((line = reader.readLine()) != null) {
+                Account account = null;
+
+                // parse line to account
+                try {
+                    account = stringParser.parseDataToAccount(line);
+                } catch (Exception e) {
+                    LOG.warn("Skipping malformed line: {}", line, e);
+                    continue;
+                }
+
+                // write to log if account is null
+                if (account == null) {
+                    LOG.warn("Parser returned null for line: {}", line);
+                    continue;
+                }
+
+                // skip if id already exists
                 if (accountRepository.isIdExisting(account.getId())) {
+                    LOG.info("Skipping existing id: {}", account.getId());
                     continue;
                 }
 
                 try {
-                    accountRepository.save(stringParser.parseDataToAccount(line));
+                    accountRepository.save(account);
                 } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
+                    LOG.error("Failed to save account from line: {}", line, e);
                 }
             }
         } catch (Exception e) {

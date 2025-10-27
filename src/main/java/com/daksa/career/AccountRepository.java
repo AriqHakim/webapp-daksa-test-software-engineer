@@ -23,7 +23,6 @@ public class AccountRepository {
      * @param account
      */
     public void save(Account account) {
-        // TODO: Code Here
         ACCOUNTS.add(account);
     }
 
@@ -33,7 +32,6 @@ public class AccountRepository {
      * @return List of Account
      */
     public List<Account> getAccounts() {
-        // TODO: Code Here
         return ACCOUNTS;
     }
 
