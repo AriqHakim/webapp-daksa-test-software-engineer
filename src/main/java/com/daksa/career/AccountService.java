@@ -58,7 +58,7 @@ public class AccountService {
                 try {
                     account = stringParser.parseDataToAccount(line);
                 } catch (Exception e) {
-                    LOG.warn("Skipping malformed line: {}", line, e);
+                    LOG.warn("Skipping malformed line: {}\n", line, e);
                     continue;
                 }
 
@@ -77,12 +77,9 @@ public class AccountService {
                 try {
                     accountRepository.save(account);
                 } catch (Exception e) {
-                    LOG.error("Failed to save account from line: {}", line, e);
+                    LOG.error("Failed to save account from line: {}\n", line, e);
                 }
             }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
         }
     }
-
 }
